@@ -38,6 +38,7 @@
 #include "nvblox_ros/visualization.hpp"
 #include "nvblox/integrators/occupancy_conversions.h"
 
+// 学习入口：ROS 建图节点把带标定位姿的深度/彩色/点云送入独立 nvblox_core，再导出几何地图；此处不是可学习未来预测模型。
 namespace nvblox
 {
 
@@ -49,11 +50,13 @@ namespace
 // Usually this is used, including in this file to inherit from several lambdas.
 // For more see: https://medium.com/@nerudaj/std-visit-is-awesome-heres-why-f183f6437932
 template<class ... Ts>
+// 组合多个 lambda 的 operator()，让 std::visit 分别处理有 mask 与无 mask 的图像变体。
 struct Visitor : Ts ... { using Ts::operator() ...; };
 
 template<class ... Ts>
 Visitor(Ts ...)->Visitor<Ts...>;
 
+// 从图像 header 读取 ROS 采集时间，明确使用 RCL_ROS_TIME。
 rclcpp::Time getTimestamp(const sensor_msgs::msg::Image & image)
 {
   return rclcpp::Time(image.header.stamp.sec, image.header.stamp.nanosec, RCL_ROS_TIME);
@@ -61,6 +64,7 @@ rclcpp::Time getTimestamp(const sensor_msgs::msg::Image & image)
 
 }  // namespace
 
+// 初始化 ROS 参数、TF 转换器与 CUDA 流；先注册接口，再构建 MultiMapper，最后启动处理定时器。
 NvbloxNode::NvbloxNode(
   const rclcpp::NodeOptions & options, const std::string & node_name,
   std::shared_ptr<CudaStream> cuda_stream)
@@ -70,11 +74,13 @@ NvbloxNode::NvbloxNode(
   // This ensures that the rates are relative to ROS and not to system time.
   // NOTE(remos): For timing::Timer we rely on system time to not make our
   // measurements dependent on e.g. simulation time speed.
+  // 统计速率使用节点 ROS 时钟，而耗时 Timer 使用系统时间；仿真时间与真实执行耗时要分开阅读。
   auto getROSTimestampFunctor = [this]() -> uint64_t {
       return this->get_clock()->now().nanoseconds();
     };
   timing::Rates::setGetTimestampFunctor(getROSTimestampFunctor);
 
+  // 参数必须先初始化，因为相机数量、地图类型和各接口选择都依赖它们。
   // Get parameters first (stuff below depends on parameters)
   initializeNvbloxNodeParams(this, &params_, &parameter_tree_);
   CHECK_LE(params_.num_cameras, kMaxNumCameras);
@@ -130,6 +136,7 @@ NvbloxNode::NvbloxNode(
       << nvblox::parameters::parameterTreeToString(parameter_tree_));
 }
 
+// 按配置保存静态 ESDF 切片对应的占据图 PNG/YAML，并打印统计；不是把所有动态地图自动序列化。
 NvbloxNode::~NvbloxNode()
 {
   if (params_.after_shutdown_map_save_path.get().size() > 0) {
@@ -179,6 +186,7 @@ NvbloxNode::~NvbloxNode()
   RCLCPP_INFO_STREAM(get_logger(), "Delay statistics: \n" << nvblox::timing::Delays::Print());
 }
 
+// 创建设备内存上的 MultiMapper 并应用静态/动态积分参数，保存 background/foreground mapper 句柄。
 void NvbloxNode::initializeMultiMapper()
 {
   // Create the multi mapper
@@ -209,6 +217,7 @@ void NvbloxNode::initializeMultiMapper()
   dynamic_mapper_ = multi_mapper_.get()->foreground_mapper();
 }
 
+// 建立图像+标定同步器和有界处理队列；回调只排队，真正积分由 tick 调用。
 void NvbloxNode::subscribeToTopics()
 {
   RCLCPP_INFO_STREAM(get_logger(), "NvbloxNode::subscribeToTopics()");
@@ -237,6 +246,7 @@ void NvbloxNode::subscribeToTopics()
   get_parameter("input_qos", input_qos_str);
   RCLCPP_INFO_STREAM(get_logger(), "Subscribing input topics with QoS: " << input_qos_str);
 
+  // 标准 Image 的 data 可由 CUDA/CPU Buffer 后端提供；选择 any 不意味着所有输入都无复制。
   // Accept GPU-backed image buffers (e.g. CUDA) while remaining compatible
   // with CPU-backed publishers; from_input_buffer promotes CPU buffers as needed.
   rclcpp::SubscriptionOptions image_sub_options;
@@ -268,6 +278,7 @@ void NvbloxNode::subscribeToTopics()
           std::make_shared<::message_filters::Subscriber<sensor_msgs::msg::Image>>(
             this, base_name_seg_depth + "/image",
             input_qos, image_sub_options));
+        // 深度+mask 四条消息采用 ApproximateTime；普通深度和标定采用 ExactTime。
         // Sync depth and segmentation images with their camera infos
         timesync_depth_mask_.emplace_back(
           std::make_shared<image_mask_approx_sync>(
@@ -316,6 +327,7 @@ void NvbloxNode::subscribeToTopics()
           std::make_shared<::message_filters::Subscriber<sensor_msgs::msg::Image>>(
             this, base_name_seg_color + "/image",
             input_qos, image_sub_options));
+        // 彩色+mask 四条消息采用 ExactTime；与深度+mask 的近似同步规则不同。
         // Sync color and segmentation images with their camera infos
         timesync_color_mask_.emplace_back(
           std::make_shared<image_mask_exact_sync>(
@@ -350,6 +362,7 @@ void NvbloxNode::subscribeToTopics()
       std::bind(&NvbloxNode::pointcloudCallback, this, std::placeholders::_1));
   }
 
+  // transform/pose 消息总会注册，但 Transformer 是否使用 topic 数据由 use_topic_transforms 参数决定。
   // Subscribe to transforms.
   transform_sub_ = create_subscription<geometry_msgs::msg::TransformStamped>(
     "transform", kQueueSize,
@@ -358,6 +371,7 @@ void NvbloxNode::subscribeToTopics()
     "pose", 10, std::bind(&Transformer::poseCallback, &transformer_, std::placeholders::_1));
 }
 
+// 声明静态/动态/组合距离切片、占据栅格和诊断可视化发布器；实际输出依赖模式与订阅者。
 void NvbloxNode::advertiseTopics()
 {
   RCLCPP_INFO_STREAM(get_logger(), "NvbloxNode::advertiseTopics()");
@@ -422,6 +436,7 @@ void NvbloxNode::advertiseTopics()
   }
 }
 
+// 声明地图/PLY/统计保存与 ESDF 查询服务；耗时服务后续转为处理队列任务。
 void NvbloxNode::advertiseServices()
 {
   RCLCPP_INFO_STREAM(get_logger(), "NvbloxNode::advertiseServices()");
@@ -454,6 +469,7 @@ void NvbloxNode::advertiseServices()
     rclcpp::ServicesQoS());
 }
 
+// 以 tick_period_ms/1000 的秒周期创建 wall timer，归入互斥处理 callback group。
 void NvbloxNode::setupTimers()
 {
   RCLCPP_INFO_STREAM(get_logger(), "NvbloxNode::setupTimers()");
@@ -464,6 +480,7 @@ void NvbloxNode::setupTimers()
     std::bind(&NvbloxNode::tick, this), group_processing_);
 }
 
+// 将已近似同步的深度/标定/掩码/标定四元组加入深度队列，并统计到达延迟。
 void NvbloxNode::depthPlusMaskImageCallback(
   const sensor_msgs::msg::Image::ConstSharedPtr & depth_image,
   const sensor_msgs::msg::CameraInfo::ConstSharedPtr & depth_camera_info,
@@ -484,6 +501,7 @@ void NvbloxNode::depthPlusMaskImageCallback(
     depth_image_queue_, &depth_queue_mutex_);
 }
 
+// 将已精确同步的深度与 CameraInfo 二元组加入深度队列，不在订阅回调中积分。
 void NvbloxNode::depthImageCallback(
   const sensor_msgs::msg::Image::ConstSharedPtr & depth_image,
   const sensor_msgs::msg::CameraInfo::ConstSharedPtr & depth_camera_info)
@@ -502,6 +520,7 @@ void NvbloxNode::depthImageCallback(
     depth_image_queue_, &depth_queue_mutex_);
 }
 
+// 将已精确同步的彩色/标定/掩码/标定四元组加入彩色队列。
 void NvbloxNode::colorPlusMaskImageCallback(
   const sensor_msgs::msg::Image::ConstSharedPtr & color_image,
   const sensor_msgs::msg::CameraInfo::ConstSharedPtr & color_camera_info,
@@ -522,6 +541,7 @@ void NvbloxNode::colorPlusMaskImageCallback(
     color_image_queue_, &color_queue_mutex_);
 }
 
+// 将已精确同步的彩色与 CameraInfo 二元组加入彩色队列。
 void NvbloxNode::colorImageCallback(
   const sensor_msgs::msg::Image::ConstSharedPtr & color_image,
   const sensor_msgs::msg::CameraInfo::ConstSharedPtr & color_camera_info)
@@ -540,6 +560,7 @@ void NvbloxNode::colorImageCallback(
     color_image_queue_, &color_queue_mutex_);
 }
 
+// 把 PointCloud2 及其采集时间排入 LiDAR 队列，等待对应时刻的传感器位姿可用。
 void NvbloxNode::pointcloudCallback(
   const sensor_msgs::msg::PointCloud2::ConstSharedPtr pointcloud)
 {
@@ -556,6 +577,7 @@ void NvbloxNode::pointcloudCallback(
     &pointcloud_queue_mutex_);
 }
 
+// 按秒时间差与目标 Hz 控制处理频率；Hz<=0 禁用，时间差必须严格大于一个周期。
 bool NvbloxNode::shouldProcess(
   const rclcpp::Time & time_now, const rclcpp::Time & time_last,
   const float desired_frequency_hz)
@@ -567,6 +589,7 @@ bool NvbloxNode::shouldProcess(
   return time_since_last.seconds() > (1.0 / desired_frequency_hz);
 }
 
+// 串行处理服务与传感器队列，再按独立频率衰减/清图/更新 ESDF/发布层与诊断。
 void NvbloxNode::tick()
 {
   // The idle timer measures time spent *outside* the tick function
@@ -578,6 +601,7 @@ void NvbloxNode::tick()
   // Process all service calls
   processServiceRequestTaskQueue();
 
+  // tick 会访问每个已启用队列；各传感器积分函数按自身采集时间再限频。
   // Process sensor data
   // NOTE: We process these queues every time, checking if we can process (or discard) messages
   // in the queue. Dropping messages in order to not exceed integration rates is handled inside
@@ -617,6 +641,7 @@ void NvbloxNode::tick()
     clear_map_outside_radius_last_time_ = now;
   }
 
+  // ESDF 更新频率独立于深度和颜色频率；二维切片是几何距离图，不是策略 action 输出。
   // Output cost map
   if (const rclcpp::Time now = this->get_clock()->now();
     shouldProcess(now, update_esdf_last_time_, params_.update_esdf_rate_hz))
@@ -665,6 +690,7 @@ void NvbloxNode::tick()
   idle_timer_.Start();
 }
 
+// 访问图像变体，检查图像及可选 mask 的采集时刻到 global_frame 的变换是否可用。
 bool NvbloxNode::isPoseAvailable(const ImageTypeVariant & variant_msg)
 {
   return std::visit(
@@ -684,6 +710,7 @@ bool NvbloxNode::isPoseAvailable(const ImageTypeVariant & variant_msg)
     }, variant_msg);
 }
 
+// 筛选已有位姿的深度队列项并调用 processDepthImage；processQueue 会先移除就绪项。
 void NvbloxNode::processDepthQueue()
 {
   auto message_ready = [this](const ImageTypeVariant & variant_msg) -> bool {
@@ -702,6 +729,7 @@ void NvbloxNode::processDepthQueue()
     process_image_msg);
 }
 
+// 筛选已有位姿的彩色队列项并调用 processColorImage；回调返回 true 不代表积分一定成功。
 void NvbloxNode::processColorQueue()
 {
   auto message_ready = [this](const ImageTypeVariant & variant_msg) -> bool {
@@ -720,6 +748,7 @@ void NvbloxNode::processColorQueue()
     process_image_msg);
 }
 
+// 在 LiDAR 时刻位姿可查时移出队列并处理点云；返回值未被模板队列重试机制使用。
 void NvbloxNode::processPointcloudQueue()
 {
   using PointcloudMsg = sensor_msgs::msg::PointCloud2::ConstSharedPtr;
@@ -733,6 +762,7 @@ void NvbloxNode::processPointcloudQueue()
     std::bind(&NvbloxNode::processLidarPointcloud, this, std::placeholders::_1));
 }
 
+// 执行两个服务任务队列，并在请求可视化时立即发布层。
 void NvbloxNode::processServiceRequestTaskQueue()
 {
   // Services are always ready to be processed.
@@ -759,6 +789,7 @@ void NvbloxNode::processServiceRequestTaskQueue()
   }
 }
 
+// 调用 MultiMapper 更新 ESDF；二维模式按需切片发布静态、动态和组合距离/占据输出。
 void NvbloxNode::processEsdf()
 {
   const rclcpp::Time timestamp = get_clock()->now();
@@ -766,6 +797,7 @@ void NvbloxNode::processEsdf()
   timing::Rates::tick("ros/update_esdf");
 
   timing::Timer esdf_integration_timer("ros/esdf/integrate");
+  // 积分得到的 TSDF/occupancy 经核心库更新成 ESDF；算法实现不在本 ROS 包装仓库。
   multi_mapper_->updateEsdf();
   if (newest_integrated_depth_time_ > rclcpp::Time(0, 0, RCL_ROS_TIME)) {
     timing::Delays::tick(
@@ -775,6 +807,7 @@ void NvbloxNode::processEsdf()
   }
   esdf_integration_timer.Stop();
 
+  // 当前二维分支提供距离切片；三维服务与二维导航切片是不同接口。
   if (params_.esdf_mode == EsdfMode::k2D) {
     timing::Timer esdf_output_timer("ros/esdf/slice_output");
 
@@ -804,6 +837,7 @@ void NvbloxNode::processEsdf()
   }
 }
 
+// 仅在相应订阅者存在时提取单层或双层 ESDF 切片，转成点云/DistanceMapSlice/占据栅格。
 void NvbloxNode::sliceAndPublishEsdf(
   const std::string & name, const std::shared_ptr<Mapper> & mapper,
   const rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr & pointcloud_publisher,
@@ -876,6 +910,7 @@ void NvbloxNode::sliceAndPublishEsdf(
   }
 }
 
+// 将距离切片转换为 width×height 的 OccupancyGrid，设置 global_frame、分辨率与二维原点。
 void NvbloxNode::publishOccupancyGridMsg(
   const float voxel_size, const int width, const int height, const double origin_x_position,
   const double origin_y_position, const nvblox::Image<float> & map_slice_image,
@@ -910,12 +945,14 @@ void NvbloxNode::publishOccupancyGridMsg(
   occupancy_grid_publisher->publish(occupancy_grid_msg);
 }
 
+// 对前景动态 mapper 的全部占据体素执行衰减。
 void NvbloxNode::decayDynamicOccupancy()
 {
   timing::Timer timer("ros/decay_dynamic_occupancy");
   dynamic_mapper_->decayOccupancyAllVoxels();
 }
 
+// 衰减静态 TSDF，排除最近相机视野；原代码注释说明不排除 LiDAR 视野。
 void NvbloxNode::decayTsdf()
 {
   timing::Timer timer("ros/decay_tsdf");
@@ -923,12 +960,14 @@ void NvbloxNode::decayTsdf()
   static_mapper_->decayTsdfExcludeLastView<Camera>();
 }
 
+// 调用 Transformer 试查给定 frame/time 到 global_frame 的变换，只返回可用性。
 bool NvbloxNode::canTransform(const std::string & frame_id, const rclcpp::Time & timestamp)
 {
   Transform T_L_C;
   return transformer_.lookupTransformToGlobalFrame(frame_id, timestamp, &T_L_C);
 }
 
+// 把二元/四元图像变体统一拆成 image、CameraInfo 与可选 mask/CameraInfo。
 NvbloxNode::ImageMsgOptionalMaskMsgTuple NvbloxNode::decomposeImageTypeVariant(
   const ImageTypeVariant & variant_msg)
 {
@@ -959,6 +998,7 @@ NvbloxNode::ImageMsgOptionalMaskMsgTuple NvbloxNode::decomposeImageTypeVariant(
   return {img_ptr, camera_info_msg, mask_img_opt, mask_camera_info_opt};
 }
 
+// 深度核心：限频→按采集时刻查 TF→相机/Buffer 转换→MultiMapper 深度积分→可选调试输出。
 bool NvbloxNode::processDepthImage(const ImageTypeVariant & depth_msg)
 {
   timing::Timer ros_depth_timer("ros/depth");
@@ -996,6 +1036,7 @@ bool NvbloxNode::processDepthImage(const ImageTypeVariant & depth_msg)
   constexpr int64_t kNanoSecondsToMilliSeconds = 1e6;
   nvblox::Time update_time_ms(depth_image_timestamp.nanoseconds() / kNanoSecondsToMilliSeconds);
 
+  // 变换在消息采集时间查询，不使用当前时刻代替；TF 不可用会阻止此处理路径。
   // Get the TF for this image.
   if (!transformer_.lookupTransformToGlobalFrame(
       depth_frame, depth_image_timestamp,
@@ -1009,12 +1050,14 @@ bool NvbloxNode::processDepthImage(const ImageTypeVariant & depth_msg)
     if (!transformer_.lookupTransformToGlobalFrame(mask_frame, mask_image_timestamp, &T_L_C_mask)) {
       return false;
     }
+    // T_mask_depth = inverse(T_global_mask) * T_global_depth；用于把深度数据关联到 mask 相机。
     T_CM_CD = T_L_C_mask.inverse() * T_L_C_depth_;
   }
 
   transform_timer.Stop();
   timing::Timer conversions_timer("ros/depth/conversions");
 
+  // 读取 CameraInfo 的 K 与宽高；此转换不执行畸变校正，输入几何一致性要由上游保证。
   // Convert camera info message to camera object.
   const Camera depth_camera_ = conversions::cameraFromMessage(*depth_camera_info_msg);
   Camera mask_camera;
@@ -1039,6 +1082,7 @@ bool NvbloxNode::processDepthImage(const ImageTypeVariant & depth_msg)
     }
   }
   conversions_timer.Stop();
+  // 无 mask 时传入更新毫秒时间；有 mask 时另传深度相机→mask 相机的相对变换和两套内参。
   // Do the actual depth integration
   timing::Timer integration_timer("ros/depth/integrate");
   timing::Rates::tick("ros/depth");
@@ -1053,6 +1097,7 @@ bool NvbloxNode::processDepthImage(const ImageTypeVariant & depth_msg)
     "ros/depth_image_integration",
     nvblox::Time(depth_image_timestamp.nanoseconds()),
     nvblox::Time(now().nanoseconds()));
+  // 只有成功走到积分后才更新该深度 frame 的限频时间；原队列模板已经提前移除了就绪项。
   integrate_depth_last_times_[depth_frame] = depth_image_timestamp;
   // Update the most recent depth time
   newest_integrated_depth_time_ = std::max(depth_image_timestamp, newest_integrated_depth_time_);
@@ -1078,6 +1123,7 @@ bool NvbloxNode::processDepthImage(const ImageTypeVariant & depth_msg)
   return true;
 }
 
+// 有订阅者时发布最近动态点云与深度遮罩叠图；点云使用 global_frame。
 void NvbloxNode::publishDynamics(const std::string & camera_frame_id)
 {
   // Publish the dynamic pointcloud
@@ -1101,6 +1147,7 @@ void NvbloxNode::publishDynamics(const std::string & camera_frame_id)
   }
 }
 
+// 将前景深度反投影为点云并转换到全局坐标；按订阅情况发布人物点云与叠图。
 void NvbloxNode::publishHumanDebugOutput(const std::string & camera_frame_id, const Camera & camera)
 {
   timing::Timer ros_human_total_timer("ros/humans");
@@ -1141,6 +1188,7 @@ void NvbloxNode::publishHumanDebugOutput(const std::string & camera_frame_id, co
 }
 
 template<typename SensorType>
+// 对 Camera 或 Lidar 深度按帧抽样反投影，仅为订阅者发布传感器坐标系的调试点云。
 void NvbloxNode::publishBackProjectedDepth(
   const SensorType & sensor, const DepthImage & depth_image, const std::string & sensor_frame,
   const rclcpp::Time & timestamp)
@@ -1171,6 +1219,7 @@ void NvbloxNode::publishBackProjectedDepth(
   }
 }
 
+// 彩色核心：限频与清图时间检查→查询采集时刻 TF→Buffer/内参转换→彩色层积分。
 bool NvbloxNode::processColorImage(const ImageTypeVariant & color_msg)
 {
   timing::Timer ros_color_timer("ros/color");
@@ -1204,6 +1253,7 @@ bool NvbloxNode::processColorImage(const ImageTypeVariant & color_msg)
     // Discard images older then the last shape clearing (would reintegrate cleared shapes).
     return true;
   }
+  // 变换在消息采集时间查询，不使用当前时刻代替；TF 不可用会阻止此处理路径。
   // Get the TF for this image.
   Transform T_L_C;
   if (!transformer_.lookupTransformToGlobalFrame(color_frame, color_image_timestamp, &T_L_C)) {
@@ -1219,6 +1269,7 @@ bool NvbloxNode::processColorImage(const ImageTypeVariant & color_msg)
 
   timing::Timer color_convert_timer("ros/color/conversion");
 
+  // 读取 CameraInfo 的 K 与宽高；此转换不执行畸变校正，输入几何一致性要由上游保证。
   // Convert camera info message to camera object.
   const Camera color_camera = conversions::cameraFromMessage(*color_camera_info_msg);
 
@@ -1262,6 +1313,7 @@ bool NvbloxNode::processColorImage(const ImageTypeVariant & color_msg)
   return true;
 }
 
+// LiDAR 核心：验证模型、转换点云并按配置读取逐点时间，选用扫描终点 TF 做运动补偿后积分。
 bool NvbloxNode::processLidarPointcloud(
   const sensor_msgs::msg::PointCloud2::ConstSharedPtr & pointcloud_ptr)
 {
@@ -1282,6 +1334,7 @@ bool NvbloxNode::processLidarPointcloud(
     // Discard images older then the last shape clearing (would reintegrate cleared shapes).
     return true;
   }
+  // 变换在消息采集时间查询，不使用当前时刻代替；TF 不可用会阻止此处理路径。
   // Get the TF for this image.
   const std::string target_frame = pointcloud_ptr->header.frame_id;
   Transform T_L_C;
@@ -1324,6 +1377,7 @@ bool NvbloxNode::processLidarPointcloud(
     return true;
   }
 
+  // 运动补偿需要逐点时间和扫描结束位姿，普通积分不要求逐点时间字段。
   // Check if LiDAR motion compensation is enabled.
   // Per-point timestamps are only required for motion compensation.
   const bool use_lidar_motion_compensation = params_.use_lidar_motion_compensation.get();
@@ -1365,6 +1419,7 @@ bool NvbloxNode::processLidarPointcloud(
     }
   }
 
+  // 补偿开关、可选扫描终点变换与扫描时长一起传给核心库；补偿的具体数学实现属于子模块。
   // Integrate pointcloud
   timing::Timer lidar_integration_timer("ros/lidar/integration");
   multi_mapper_->integrateDepth(nvblox_pointcloud, T_L_C, lidar,
@@ -1407,6 +1462,7 @@ bool NvbloxNode::processLidarPointcloud(
   return true;
 }
 
+// 查询清图参考系最新位姿，按带宽和可视化范围把有订阅的静态/动态层交给 LayerPublisher。
 void NvbloxNode::publishLayers()
 {
   timing::Timer publish_layer_timer("ros/publish_layers");
@@ -1434,6 +1490,7 @@ void NvbloxNode::publishLayers()
     get_logger());
 }
 
+// 发布 TSDF 地面候选点、地面估计、ESDF 高度界与工作空间边界；不修改建图积分。
 void NvbloxNode::publishDebugVisualizations()
 {
   const rclcpp::Time timestamp = get_clock()->now();
@@ -1551,6 +1608,7 @@ void NvbloxNode::publishDebugVisualizations()
   }
 }
 
+// 当清图半径为正且最新参考位姿可查时，清除静态 mapper 半径外的块。
 void NvbloxNode::clearMapOutsideOfRadiusOfLastKnownPose()
 {
   if (params_.map_clearing_radius_m > 0.0f) {
@@ -1571,6 +1629,7 @@ void NvbloxNode::clearMapOutsideOfRadiusOfLastKnownPose()
 }
 
 // Helper function for ends with. :)
+// 按不区分大小写的后缀比较选择地图/PLY/文本保存路径。
 bool ends_with(const std::string & value, const std::string & ending)
 {
   if (ending.size() > value.size()) {
@@ -1583,10 +1642,12 @@ bool ends_with(const std::string & value, const std::string & ending)
     });
 }
 
+// 将 PLY 输出封装为队列任务并等待完成；完整 .ply 路径与目录路径选择不同输出集合。
 void NvbloxNode::savePly(
   const std::shared_ptr<nvblox_msgs::srv::FilePath::Request> request,
   std::shared_ptr<nvblox_msgs::srv::FilePath::Response> response)
 {
+  // 地图服务构造延迟执行的任务 lambda，使地图操作与 tick 的处理路径协调。
   // Define the task function
   TaskFunctionType<NvbloxNode, nvblox_msgs::srv::FilePath> request_task =
     [](auto node,
@@ -1632,6 +1693,7 @@ void NvbloxNode::savePly(
     std::make_shared<ServiceRequestTask<NvbloxNode, nvblox_msgs::srv::FilePath>>(
     request_task, this, request, response);
 
+  // 服务线程等待处理队列完成任务；不能把服务回调只看作立即执行的文件操作。
   // Push the task onto the queue and wait for completion.
   pushOntoQueue(
     kFilePathServiceQueueName, task, file_path_service_queue_,
@@ -1639,10 +1701,12 @@ void NvbloxNode::savePly(
   task->waitForTaskCompletion();
 }
 
+// 服务排队保存静态 mapper 的 LayerCake，缺少 .nvblx 后缀时补上。
 void NvbloxNode::saveMap(
   const std::shared_ptr<nvblox_msgs::srv::FilePath::Request> request,
   std::shared_ptr<nvblox_msgs::srv::FilePath::Response> response)
 {
+  // 地图服务构造延迟执行的任务 lambda，使地图操作与 tick 的处理路径协调。
   // Define the task function
   TaskFunctionType<NvbloxNode, nvblox_msgs::srv::FilePath> request_task =
     [](auto node,
@@ -1667,6 +1731,7 @@ void NvbloxNode::saveMap(
     std::make_shared<ServiceRequestTask<NvbloxNode, nvblox_msgs::srv::FilePath>>(
     request_task, this, request, response);
 
+  // 服务线程等待处理队列完成任务；不能把服务回调只看作立即执行的文件操作。
   // Push the task onto the queue and wait for completion.
   pushOntoQueue(
     kFilePathServiceQueueName, task, file_path_service_queue_,
@@ -1674,10 +1739,12 @@ void NvbloxNode::saveMap(
   task->waitForTaskCompletion();
 }
 
+// 服务排队把 .nvblx 地图加载进静态 mapper，返回实际加载结果。
 void NvbloxNode::loadMap(
   const std::shared_ptr<nvblox_msgs::srv::FilePath::Request> request,
   std::shared_ptr<nvblox_msgs::srv::FilePath::Response> response)
 {
+  // 地图服务构造延迟执行的任务 lambda，使地图操作与 tick 的处理路径协调。
   // Define the task function
   TaskFunctionType<NvbloxNode, nvblox_msgs::srv::FilePath> request_task =
     [](auto node,
@@ -1702,6 +1769,7 @@ void NvbloxNode::loadMap(
     std::make_shared<ServiceRequestTask<NvbloxNode, nvblox_msgs::srv::FilePath>>(
     request_task, this, request, response);
 
+  // 服务线程等待处理队列完成任务；不能把服务回调只看作立即执行的文件操作。
   // Push the task onto the queue and wait for completion.
   pushOntoQueue(
     kFilePathServiceQueueName, task, file_path_service_queue_,
@@ -1709,6 +1777,7 @@ void NvbloxNode::loadMap(
   task->waitForTaskCompletion();
 }
 
+// 直接把速率统计写入 .txt；此服务未走地图处理任务队列。
 void NvbloxNode::saveRates(
   const std::shared_ptr<nvblox_msgs::srv::FilePath::Request> request,
   std::shared_ptr<nvblox_msgs::srv::FilePath::Response> response)
@@ -1735,6 +1804,7 @@ void NvbloxNode::saveRates(
   }
 }
 
+// 直接把耗时统计写入 .txt；此服务未走地图处理任务队列。
 void NvbloxNode::saveTimings(
   const std::shared_ptr<nvblox_msgs::srv::FilePath::Request> request,
   std::shared_ptr<nvblox_msgs::srv::FilePath::Response> response)
@@ -1761,6 +1831,7 @@ void NvbloxNode::saveTimings(
   }
 }
 
+// 仅允许三维 ESDF；排队执行形状清理、可选 ESDF 更新与 AABB 范围查询，并等待响应。
 void NvbloxNode::getEsdfAndGradientService(
   const std::shared_ptr<nvblox_msgs::srv::EsdfAndGradients::Request> request,
   std::shared_ptr<nvblox_msgs::srv::EsdfAndGradients::Response> response)
@@ -1776,6 +1847,7 @@ void NvbloxNode::getEsdfAndGradientService(
     request->aabb_min_m.y, request->aabb_min_m.z,
     request->aabb_size_m.x, request->aabb_size_m.y,
     request->aabb_size_m.z);
+  // 调用三维查询服务但配置二维 ESDF 时，现有代码打印 FATAL 并 exit(1)，并非仅返回 success=false。
   if (params_.esdf_mode != EsdfMode::k3D) {
     RCLCPP_FATAL_STREAM(
       get_logger(),
@@ -1785,6 +1857,7 @@ void NvbloxNode::getEsdfAndGradientService(
     exit(1);
   }
 
+  // 地图服务构造延迟执行的任务 lambda，使地图操作与 tick 的处理路径协调。
   // Define the task function
   TaskFunctionType<NvbloxNode, nvblox_msgs::srv::EsdfAndGradients> request_task =
     [](auto node,
@@ -1924,6 +1997,7 @@ void NvbloxNode::getEsdfAndGradientService(
     std::make_shared<ServiceRequestTask<NvbloxNode, nvblox_msgs::srv::EsdfAndGradients>>(
     request_task, this, request, response);
 
+  // 服务线程等待处理队列完成任务；不能把服务回调只看作立即执行的文件操作。
   // Push the task onto the queue and wait for completion.
   pushOntoQueue(kEsdfServiceQueueName, task, esdf_service_queue_, &esdf_service_queue_mutex_);
   task->waitForTaskCompletion();

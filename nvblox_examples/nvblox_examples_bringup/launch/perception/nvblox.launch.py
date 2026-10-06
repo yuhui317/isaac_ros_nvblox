@@ -15,6 +15,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# 学习入口：把相机类型/建图模式选择转换成 topic 重映射、YAML 参数层和 NvbloxNode 加载动作。
 from typing import List, Tuple
 
 import isaac_ros_launch_utils as lu
@@ -25,9 +26,11 @@ from nvblox_ros_python_utils.nvblox_constants import NVBLOX_CONTAINER_NAME
 from nvblox_ros_python_utils.nvblox_launch_utils import NvbloxCamera, NvbloxMode
 
 
+# 把最多前三个模拟相机名称映射为索引深度/彩色接口；按模式额外接入人像掩码与可选 LiDAR。
 def get_isaac_sim_remappings(mode: NvbloxMode, num_cameras: int,
                              lidar: bool) -> List[Tuple[str, str]]:
     remappings = []
+    # 这里的相机列表最多三项；ROS 节点自身声明最多四路，两者不是同一限制。
     camera_names = ['front_stereo_camera', 'left_stereo_camera',
                     'right_stereo_camera'][:num_cameras]
     for i, name in enumerate(camera_names):
@@ -44,6 +47,7 @@ def get_isaac_sim_remappings(mode: NvbloxMode, num_cameras: int,
     return remappings
 
 
+# 为 RealSense 建立深度/彩色/掩码映射；仅 camera0 使用 splitter，其它相机直接使用深度 topic。
 def get_realsense_remappings(mode: NvbloxMode, num_cameras: int = 1) -> List[Tuple[str, str]]:
     # NOTE(xinjieyao, 04.09.2024): Current in this function we only support:
     # - On/off emitter flashing + realsense_splitter on camera_0 (front camera).
@@ -52,6 +56,7 @@ def get_realsense_remappings(mode: NvbloxMode, num_cameras: int = 1) -> List[Tup
 
     remappings = []
     for i in range(0, num_cameras):
+        # camera0 的 splitter 用于示例传感器流程；本函数只连接 topic，不实现红外/深度分流算法。
         if i == 0:
             # Only cam0 (i == 0) runs splitter.
             remappings.append(
@@ -61,6 +66,7 @@ def get_realsense_remappings(mode: NvbloxMode, num_cameras: int = 1) -> List[Tup
             remappings.append((f'camera_{i}/depth/image', f'/camera{i}/depth/image_rect_raw'))
             remappings.append((f'camera_{i}/depth/camera_info', f'/camera{i}/depth/camera_info'))
 
+        # 分割模式的彩色与 mask 来自同一缩放后的分割输入，因此对应 CameraInfo 也使用缩放版本。
         if mode is NvbloxMode.people_segmentation:
             # nvblox takes resized images from semseg inputs
             remappings.append(
@@ -83,6 +89,7 @@ def get_realsense_remappings(mode: NvbloxMode, num_cameras: int = 1) -> List[Tup
     return remappings
 
 
+# 只允许 ZED 静态模式，接入已注册深度、整流彩色及 pose topic；TF/topic 位姿选择仍由参数决定。
 def get_zed_remappings(mode: NvbloxMode) -> List[Tuple[str, str]]:
     assert mode is NvbloxMode.static, 'Nvblox only supports static mode for ZED cameras.'
     remappings = []
@@ -94,14 +101,17 @@ def get_zed_remappings(mode: NvbloxMode) -> List[Tuple[str, str]]:
     return remappings
 
 
+# 只重映射 Ouster OS1 PointCloud2 输入；LiDAR 模型和补偿参数由配置另行提供。
 def get_os1_remappings() -> List[Tuple[str, str]]:
     remappings = []
     remappings.append(('pointcloud', '/os1_cloud_node/points'))
     return remappings
 
 
+# 在 OpaqueFunction 执行时解析参数，选择模式与传感器配置，然后向指定容器加载 nvblox::NvbloxNode。
 def add_nvblox(args: lu.ArgumentContainer) -> List[Action]:
 
+    # mode/camera 需对应枚举名称；将相机数量转成整数用于节点参数与 topic 生成。
     mode = NvbloxMode[args.mode]
     camera = NvbloxCamera[args.camera]
     num_cameras = int(args.num_cameras)
@@ -110,6 +120,7 @@ def add_nvblox(args: lu.ArgumentContainer) -> List[Action]:
     if camera == NvbloxCamera.realsense:
         assert args.num_cameras == 1, 'NvbloxCamera.realsense shall only be set for num_cameras==1'
 
+    # 按基础配置→模式特化→相机特化→显式参数覆盖的顺序组装，后面的同名参数优先。
     base_config = lu.get_path('nvblox_examples_bringup', 'config/nvblox/nvblox_base.yaml')
     segmentation_config = lu.get_path('nvblox_examples_bringup',
                                       'config/nvblox/specializations/nvblox_segmentation.yaml')
@@ -128,6 +139,7 @@ def add_nvblox(args: lu.ArgumentContainer) -> List[Action]:
     os1_config = lu.get_path('nvblox_examples_bringup',
                              'config/nvblox/specializations/nvblox_os1.yaml')
 
+    # 静态模式不额外加入模式 YAML；人像分割/检测禁止此示例中的 LiDAR 输入。
     if mode is NvbloxMode.static:
         mode_config = {}
     elif mode is NvbloxMode.people_segmentation:
@@ -141,6 +153,7 @@ def add_nvblox(args: lu.ArgumentContainer) -> List[Action]:
     else:
         raise Exception(f'Mode {mode} not implemented for nvblox.')
 
+    # 各相机示例有独立约束；这里只声明连接和 assert，不能据此认为所有组合已可运行。
     if camera is NvbloxCamera.isaac_sim:
         remappings = get_isaac_sim_remappings(mode, num_cameras, use_lidar)
         camera_config = isaac_sim_config
@@ -166,6 +179,7 @@ def add_nvblox(args: lu.ArgumentContainer) -> List[Action]:
     else:
         raise Exception(f'Camera {camera} not implemented for nvblox.')
 
+    # 保留配置覆盖顺序；num_cameras/use_lidar 和可选运动补偿开关在 YAML 之后追加。
     parameters = []
     parameters.append(base_config)
     parameters.append(mode_config)
@@ -179,6 +193,7 @@ def add_nvblox(args: lu.ArgumentContainer) -> List[Action]:
             {'use_lidar_motion_compensation': lu.is_true(args.use_lidar_motion_compensation)})
 
     # Add the nvblox node.
+    # 实际建图组件来自 nvblox_ros，isaac_ros_nvblox 主要是聚合入口包。
     nvblox_node = ComposableNode(
         name='nvblox_node',
         package='nvblox_ros',
@@ -187,6 +202,7 @@ def add_nvblox(args: lu.ArgumentContainer) -> List[Action]:
         parameters=parameters,
     )
 
+    # 按 run_standalone 决定是否创建容器，再请求把组件加载到 container_name。
     actions = []
     if args.run_standalone:
         actions.append(lu.component_container(args.container_name))
@@ -199,6 +215,7 @@ def add_nvblox(args: lu.ArgumentContainer) -> List[Action]:
     return actions
 
 
+# 声明模式、相机、数量、LiDAR 和容器入口；OpaqueFunction 使参数在上下文中解析后再生成组件。
 def generate_launch_description() -> LaunchDescription:
     args = lu.ArgumentContainer()
     args.add_arg('mode')

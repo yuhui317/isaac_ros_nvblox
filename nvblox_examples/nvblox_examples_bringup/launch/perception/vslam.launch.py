@@ -15,6 +15,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# 学习入口：nvblox 示例中启动 cuVSLAM 位姿来源；建图组件可多相机，但此示例仅使用 camera0 的一套双目跟踪。
 from typing import List
 
 import isaac_ros_launch_utils as lu
@@ -26,6 +27,7 @@ from nvblox_ros_python_utils.nvblox_constants import NVBLOX_CONTAINER_NAME
 from nvblox_ros_python_utils.nvblox_launch_utils import NvbloxCamera
 
 
+# 把相机模式、VSLAM 参数和 topic 映射写入组合节点，并加载到与 nvblox 相同的容器。
 def add_vslam(args: lu.ArgumentContainer) -> List[Action]:
     actions = []
 
@@ -33,6 +35,7 @@ def add_vslam(args: lu.ArgumentContainer) -> List[Action]:
     # NOTE(alexmillane, 19.08.2024): At the moment in nvblox_examples we only support a single
     # camera running cuVSLAM, even in the multi-camera case: we run *nvblox* on multiple
     # cameras, but cuVSLAM on camera0 only.
+    # camera0 的两路红外与标定进入索引 0/1；depth 不在这条 VSLAM 连接中。
     realsense_remappings = [
         ('visual_slam/camera_info_0', '/camera0/infra1/camera_info'),
         ('visual_slam/camera_info_1', '/camera0/infra2/camera_info'),
@@ -51,6 +54,7 @@ def add_vslam(args: lu.ArgumentContainer) -> List[Action]:
 
     actions.append(lu.log_info(f'Starting cuVSLAM with base_frame: {base_frame}'))
 
+    # 本示例关闭 SLAM 地图，只取 VO；odom/map/base 名称仍参与 TF 发布。
     base_parameters = {
         'num_cameras': 2,
         'min_num_images': 2,
@@ -84,6 +88,7 @@ def add_vslam(args: lu.ArgumentContainer) -> List[Action]:
         ],
     }
 
+    # 原表达式第二项是枚举对象且为真，不能读作两个显式比较；本轮只标注此现有逻辑，不改条件。
     if camera is NvbloxCamera.realsense or NvbloxCamera.multi_realsense:
         remappings = realsense_remappings
         camera_parameters = realsense_parameters
@@ -95,8 +100,10 @@ def add_vslam(args: lu.ArgumentContainer) -> List[Action]:
     parameters.append(camera_parameters)
     parameters.append(
         {'enable_ground_constraint_in_odometry': args.enable_ground_constraint_in_odometry})
+    # 此示例仍传入旧 enable_imu_fusion 参数；release-5.0 节点声明使用 tracking_mode，当前代码未消费此旧开关。
     parameters.append({'enable_imu_fusion': args.enable_imu_fusion})
 
+    # release-5.0 的 ROS 包名为 isaac_ros_cuvslam；C++ 插件和 visual_slam topic 前缀保持旧命名。
     vslam_node = ComposableNode(
         name='visual_slam_node',
         package='isaac_ros_cuvslam',
@@ -111,6 +118,7 @@ def add_vslam(args: lu.ArgumentContainer) -> List[Action]:
     return actions
 
 
+# 声明相机、地面约束、旧 IMU 开关和容器参数；运行前需核对这些参数与当前节点接口。
 def generate_launch_description() -> LaunchDescription:
     args = lu.ArgumentContainer()
     args.add_arg('camera')

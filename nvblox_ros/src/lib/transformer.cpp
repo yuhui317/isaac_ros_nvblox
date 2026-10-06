@@ -21,9 +21,11 @@
 #include <memory>
 #include <string>
 
+// 学习入口：把传感器采集时刻的位姿解析为 T_global_sensor；topic 模式的坐标约定由系统配置保证。
 namespace nvblox
 {
 
+// 声明并读取 TF/topic 位姿来源开关，仅在启用 TF 时创建 tf2 缓冲与监听器。
 Transformer::Transformer(rclcpp::Node * node)
 : node_(node)
 {
@@ -39,6 +41,7 @@ Transformer::Transformer(rclcpp::Node * node)
   }
 }
 
+// 输出 T_global_sensor；使用 TF 或组合 T_global_pose*T_pose_sensor，必须至少启用一种位姿来源。
 bool Transformer::lookupTransformToGlobalFrame(
   const std::string & sensor_frame,
   const rclcpp::Time & timestamp,
@@ -73,6 +76,7 @@ bool Transformer::lookupTransformToGlobalFrame(
         return false;
       }
 
+      // 组合顺序把传感器点先变到 pose frame，再变到 global frame；与 PyRoki 的 SE(3) 组合规则一致。
       *transform = T_G_P * T_P_S;
       return true;
     } else {
@@ -82,20 +86,25 @@ bool Transformer::lookupTransformToGlobalFrame(
   return false;
 }
 
+// 按消息纳秒采集时间缓存位姿，不读取 header.frame_id/child_frame_id 来推导坐标关系。
 void Transformer::transformCallback(
   const geometry_msgs::msg::TransformStamped::ConstSharedPtr transform_msg)
 {
   rclcpp::Time timestamp = transform_msg->header.stamp;
+  // 缓存 key 为纳秒；当前回调不做 frame 校验，也没有在这里清理历史条目。
   transform_queue_[timestamp.nanoseconds()] = transformToEigen(transform_msg->transform);
 }
 
+// 把 PoseStamped 视为约定的 global→pose 位姿，按纳秒时间缓存；frame_id 在此未校验。
 void Transformer::poseCallback(
   const geometry_msgs::msg::PoseStamped::ConstSharedPtr transform_msg)
 {
   rclcpp::Time timestamp = transform_msg->header.stamp;
+  // 缓存 key 为纳秒；当前回调不做 frame 校验，也没有在这里清理历史条目。
   transform_queue_[timestamp.nanoseconds()] = poseToEigen(transform_msg->pose);
 }
 
+// 以第一参数为 target、第二参数为 source 查询指定时刻 TF；不可用或异常时返回 false。
 bool Transformer::lookupTransformTf(
   const std::string & from_frame, const std::string & to_frame,
   const rclcpp::Time & timestamp, Transform * transform)
@@ -127,6 +136,7 @@ bool Transformer::lookupTransformTf(
   return true;
 }
 
+// 时间零取最新值；非零使用 lower_bound 取不早于请求时刻的第一项并检查 100 ms 容差，不做插值。
 bool Transformer::lookupTransformQueue(const rclcpp::Time & timestamp, Transform * transform)
 {
   // Get latest transform
@@ -141,6 +151,7 @@ bool Transformer::lookupTransformQueue(const rclcpp::Time & timestamp, Transform
     // Get closest transform
     uint64_t timestamp_ns = timestamp.nanoseconds();
 
+    // 虽然原注释称 nearest neighbor，这里只取请求时间右侧第一项，没有比较前一项距离。
     auto closest_match = transform_queue_.lower_bound(timestamp_ns);
     if (closest_match == transform_queue_.end()) {
       return false;
@@ -160,6 +171,7 @@ bool Transformer::lookupTransformQueue(const rclcpp::Time & timestamp, Transform
   }
 }
 
+// 首次从 TF 查询 pose→sensor 外参并缓存，后续返回缓存；此机制假设外参可复用。
 bool Transformer::lookupSensorTransform(const std::string & sensor_frame, Transform * transform)
 {
   auto it = sensor_transforms_.find(sensor_frame);
@@ -183,6 +195,7 @@ bool Transformer::lookupSensorTransform(const std::string & sensor_frame, Transf
   }
 }
 
+// 把 ROS 平移与四元数转换为 Eigen 刚体变换，四元数构造参数按 w/x/y/z。
 Transform Transformer::transformToEigen(const geometry_msgs::msg::Transform & msg) const
 {
   return Transform(
@@ -190,6 +203,7 @@ Transform Transformer::transformToEigen(const geometry_msgs::msg::Transform & ms
     Eigen::Quaternionf(msg.rotation.w, msg.rotation.x, msg.rotation.y, msg.rotation.z));
 }
 
+// 把 ROS Pose 转为 Eigen 刚体变换，平移与旋转组合，不在此处校验 frame 或归一化。
 Transform Transformer::poseToEigen(const geometry_msgs::msg::Pose & msg) const
 {
   return Transform(

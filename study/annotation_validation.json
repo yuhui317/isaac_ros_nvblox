@@ -1,0 +1,1248 @@
+{
+  "baseline": "edf0484edbf3d6380f739b23a4cf1c7ba6d6e088",
+  "branch": "codex/study/isaac-ros-code-analysis",
+  "original_files": 240,
+  "verified_files": 240,
+  "gitlink_references": [
+    {
+      "path": "nvblox_ros/nvblox_core",
+      "commit": "24eee4948768682fa1ffb969b881efee4fca29c2",
+      "reference": "equal",
+      "source_files_checked": false
+    }
+  ],
+  "annotated_files": 8,
+  "modified_original_files": 9,
+  "annotated_python_definitions": 8,
+  "runtime_or_gpu_executed": false,
+  "cpp_compilation_executed": false,
+  "new_study_tools": [
+    {
+      "path": "study/generate_study_index.py",
+      "syntax": "passed",
+      "definitions": 8
+    },
+    {
+      "path": "study/verify_annotations.py",
+      "syntax": "passed",
+      "definitions": 9
+    }
+  ],
+  "limitations": "C++ lexical/static check only, not preprocessing or compilation; pinned submodule contents are not checked",
+  "passed": true,
+  "failures": [],
+  "files": [
+    {
+      "path": ".clang-format",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": ".gitattributes",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": ".gitignore",
+      "changed": false,
+      "added_lines": 0
+    },
+    {
+      "path": ".gitmodules",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": ".style.yapf",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "LICENSE",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "README.md",
+      "changed": true,
+      "added_lines": 9
+    },
+    {
+      "path": "SECURITY.md",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "isaac_ros_nvblox/CMakeLists.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "isaac_ros_nvblox/package.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/multi_realsense_emitter_synchronizer/CMakeLists.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/multi_realsense_emitter_synchronizer/include/multi_realsense_emitter_synchronizer/emitter_synchronizer.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/multi_realsense_emitter_synchronizer/include/multi_realsense_emitter_synchronizer/multi_realsense_emitter_synchronizer_node.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/multi_realsense_emitter_synchronizer/package.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/multi_realsense_emitter_synchronizer/src/emitter_synchronizer.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/multi_realsense_emitter_synchronizer/src/multi_realsense_emitter_synchronizer_main.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/multi_realsense_emitter_synchronizer/src/multi_realsense_emitter_synchronizer_node.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/multi_realsense_emitter_synchronizer/test/test_emitter_synchronizer.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/CMakeLists.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/navigation/carter_nav2.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/nvblox/fuser.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/nvblox/nvblox_base.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/nvblox/specializations/nvblox_detection.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/nvblox/specializations/nvblox_dynamics.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/nvblox/specializations/nvblox_multi_realsense.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/nvblox/specializations/nvblox_os1.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/nvblox/specializations/nvblox_realsense.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/nvblox/specializations/nvblox_segmentation.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/nvblox/specializations/nvblox_sim.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/nvblox/specializations/nvblox_zed.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/sensors/realsense_emitter_flashing.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/sensors/realsense_emitter_on.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/sensors/zed2.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/sensors/zed_common.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/sensors/zedx.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/urdf/4_realsense_carter_example_calibration.urdf.xacro",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/visualization/fuser_example.rviz",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/visualization/isaac_sim_dynamics_example.rviz",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/visualization/isaac_sim_example.rviz",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/visualization/isaac_sim_people_segmentation_example.rviz",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/visualization/multi_realsense_dynamics_example.rviz",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/visualization/multi_realsense_people_detection_example.rviz",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/visualization/multi_realsense_people_segmentation_example.rviz",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/visualization/os1_dynamics_example.rviz",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/visualization/os1_example.rviz",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/visualization/realsense_dynamics_example.rviz",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/visualization/realsense_example.rviz",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/visualization/realsense_people_detection_example.rviz",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/visualization/realsense_people_segmentation_example.rviz",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/config/visualization/zed_example.rviz",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/launch/fuser_example.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/launch/isaac_sim_example.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/launch/navigation/nvblox_carter_navigation.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/launch/os1_example.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/launch/perception/detection.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/launch/perception/nvblox.launch.py",
+      "changed": true,
+      "added_lines": 17,
+      "python_ast": "equal",
+      "python_executable_tokens": "equal",
+      "definitions": 6
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/launch/perception/segmentation.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/launch/perception/vslam.launch.py",
+      "changed": true,
+      "added_lines": 8,
+      "python_ast": "equal",
+      "python_executable_tokens": "equal",
+      "definitions": 2
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/launch/realsense_example.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/launch/sensors/realsense.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/launch/sensors/record_realsense.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/launch/sensors/zed.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/launch/visualization/foxglove_bridge.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/launch/visualization/rviz.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/launch/visualization/visualization.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/launch/zed_example.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/package.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_examples_bringup/test/CMakeLists.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_image_padding/CMakeLists.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_image_padding/include/nvblox_image_padding/image_padding_cropping_node.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_image_padding/package.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_image_padding/src/image_padding_cropping_node.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/nvblox_image_padding/src/image_padding_cropping_node_main.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/realsense_splitter/CMakeLists.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/realsense_splitter/COLCON_IGNORE",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/realsense_splitter/config/.gitkeep",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/realsense_splitter/include/realsense_splitter/qos.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/realsense_splitter/include/realsense_splitter/realsense_splitter_node.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/realsense_splitter/launch/realsense_splitter.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/realsense_splitter/package.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/realsense_splitter/src/realsense_splitter_node.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/realsense_splitter/src/realsense_splitter_node_main.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/semantic_label_conversion/CMakeLists.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/semantic_label_conversion/README.md",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/semantic_label_conversion/launch/semantic_label_conversion.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/semantic_label_conversion/package.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/semantic_label_conversion/params/semantic_label_conversion.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/semantic_label_conversion/semantic_label_conversion/__init__.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/semantic_label_conversion/semantic_label_conversion/semantic_label_converter.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_examples/semantic_label_conversion/semantic_label_conversion/semantic_label_stamper.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_foxglove/.eslintrc.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_foxglove/.npmignore",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_foxglove/.prettierrc.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_foxglove/CHANGELOG.md",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_foxglove/README.md",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_foxglove/package-lock.json",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_foxglove/package.json",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_foxglove/src/index.ts",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_foxglove/tsconfig.json",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_message_adapters/CMakeLists.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_message_adapters/include/nvblox_message_adapters/nvblox_mesh_layer_adapter_node.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_message_adapters/include/nvblox_message_adapters/nvblox_voxel_layer_adapter_node.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_message_adapters/launch/mesh_serializer.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_message_adapters/launch/voxel_serializer.launch.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_message_adapters/package.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_message_adapters/src/nvblox_mesh_layer_adapter_main.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_message_adapters/src/nvblox_mesh_layer_adapter_node.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_message_adapters/src/nvblox_voxel_layer_adapter_main.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_message_adapters/src/nvblox_voxel_layer_adapter_node.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_msgs/CMakeLists.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_msgs/msg/DistanceMapSlice.msg",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_msgs/msg/Index3D.msg",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_msgs/msg/Mesh.msg",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_msgs/msg/MeshBlock.msg",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_msgs/msg/MeshSerialized.msg",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_msgs/msg/SemanticLabelsStamped.msg",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_msgs/msg/VoxelBlock.msg",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_msgs/msg/VoxelBlockLayer.msg",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_msgs/msg/VoxelSerialized.msg",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_msgs/package.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_msgs/srv/EsdfAndGradients.srv",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_msgs/srv/FilePath.srv",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_nav2/CMakeLists.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_nav2/include/nvblox_nav2/nvblox_costmap_layer.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_nav2/nvblox_costmap_layer.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_nav2/package.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_nav2/src/nvblox_costmap_layer.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/CMakeLists.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/camera_cache.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/conversions/esdf_and_gradients_conversions.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/conversions/esdf_slice_conversions.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/conversions/image_conversions.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/conversions/image_conversions_thrust.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/conversions/mesh_conversions.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/conversions/pointcloud_conversions.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/conversions/transform_conversions.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/dataset_types.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/fuser_node.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/impl/mapper_initialization_impl.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/impl/nvblox_node_impl.hpp",
+      "changed": true,
+      "added_lines": 6,
+      "cpp_noncomment_tokens": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/impl/rosbag_reading_impl.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/impl/service_request_task_impl.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/layer_publishing.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/mapper_initialization.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/node_params.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/nvblox_node.hpp",
+      "changed": true,
+      "added_lines": 53,
+      "cpp_noncomment_tokens": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/rosbag_data_loader.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/rosbag_reading.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/service_request_task.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/terminal_reading.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/transformer.hpp",
+      "changed": true,
+      "added_lines": 15,
+      "cpp_noncomment_tokens": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/utils.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/include/nvblox_ros/visualization.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/package.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/scripts/calculate_lidar_params.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/scripts/print_ros_params.sh",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/scripts/run_nsys.sh",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/fuser_node_main.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/camera_cache.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/conversions/esdf_and_gradients_conversions.cu",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/conversions/esdf_slice_conversions.cu",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/conversions/image_conversions.cpp",
+      "changed": true,
+      "added_lines": 14,
+      "cpp_noncomment_tokens": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/conversions/image_conversions_thrust.cu",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/conversions/mesh_conversions.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/conversions/pointcloud_conversions.cu",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/conversions/transform_conversions.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/fuser_node.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/layer_publishing.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/mapper_initialization.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/node_params.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/nvblox_node.cpp",
+      "changed": true,
+      "added_lines": 74,
+      "cpp_noncomment_tokens": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/rosbag_data_loader.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/rosbag_reading.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/terminal_reading.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/transformer.cpp",
+      "changed": true,
+      "added_lines": 14,
+      "cpp_noncomment_tokens": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/utils.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/lib/visualization.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/src/nvblox_node_main.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/test/integration_tests/CMakeLists.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/test/integration_tests/isaac_ros_nvblox_pol.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/test/integration_tests/isaac_ros_nvblox_srv_save_and_load_map.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/test/integration_tests/isaac_ros_nvblox_srv_save_ply.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/test/integration_tests/isaac_ros_nvblox_srv_save_timings_and_rates.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/test/integration_tests/test_cases/rosbags/nvblox_pol/metadata.yaml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/test/integration_tests/test_cases/rosbags/nvblox_pol/rosbag2_2024_05_07-11_54_22_0.db3",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/test/integration_tests/test_utils/__init__.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/test/unit_tests/CMakeLists.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/test/unit_tests/test_esdf_and_gradient_conversions.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/test/unit_tests/test_node_params.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/test/unit_tests/test_rosbag_data_loader.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros/test/unit_tests/test_service_request_queue.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros_common/CMakeLists.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros_common/include/nvblox_ros_common/check_cuda_errors.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros_common/package.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros_common/src/check_cuda_errors.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros_python_utils/nvblox_ros_python_utils/__init__.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros_python_utils/nvblox_ros_python_utils/nvblox_constants.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros_python_utils/nvblox_ros_python_utils/nvblox_launch_test_utils.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros_python_utils/nvblox_ros_python_utils/nvblox_launch_utils.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros_python_utils/package.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros_python_utils/resource/nvblox_ros_python_utils",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros_python_utils/setup.cfg",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros_python_utils/setup.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros_python_utils/test/test_copyright.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros_python_utils/test/test_flake8.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_ros_python_utils/test/test_pep257.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/CMakeLists.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/icons/classes/NvbloxMesh.png",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/include/nvblox_rviz_plugin/nvblox_hash_utils.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/include/nvblox_rviz_plugin/nvblox_plugin_display.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/include/nvblox_rviz_plugin/nvblox_plugin_visual.hpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/materials/LICENSE.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/materials/README.md",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/materials/glsl150/billboard.geom",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/materials/glsl150/box.geom",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/materials/glsl150/glsl150.program",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/materials/glsl150/pass_pos_color.vert",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/materials/scripts150/point_cloud_box.material",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/materials/scripts150/point_cloud_flat_square.material",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/materials/scripts150/point_cloud_sphere.material",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/materials/scripts150/point_cloud_square.material",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/package.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/plugins_description.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/src/nvblox_plugin_display.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_rviz_plugin/src/nvblox_plugin_visual.cpp",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_test/README.md",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_test/nvblox_test/__init__.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_test/package.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_test/pytest.ini",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_test/setup.cfg",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_test/setup.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_test/test/__init__.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_test/test/isaac_sim_example_test.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_test/test/realsense_example_dynamics_test.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_test/test/realsense_example_test.py",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_test_data/CMakeLists.txt",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_test_data/asset_scripts/quickstart.sh",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "nvblox_test_data/package.xml",
+      "changed": false,
+      "protected_bytes": "equal"
+    },
+    {
+      "path": "resources/nvblox_performance_setup.png",
+      "changed": false,
+      "protected_bytes": "equal"
+    }
+  ]
+}

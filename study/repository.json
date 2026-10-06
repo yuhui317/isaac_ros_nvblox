@@ -1,0 +1,19 @@
+{
+  "name": "isaac_ros_nvblox",
+  "upstream": "NVIDIA-ISAAC-ROS/isaac_ros_nvblox",
+  "fork": "yuhui317/isaac_ros_nvblox",
+  "local_path": "projects/isaac_ros_ws/src/isaac_ros_nvblox",
+  "source_branch": "release-5.0",
+  "study_branch": "codex/study/isaac-ros-code-analysis",
+  "baseline": "edf0484edbf3d6380f739b23a4cf1c7ba6d6e088",
+  "checkout_date": "2026-10-06",
+  "annotated_files": 8,
+  "read_files": 21,
+  "original_files": 240,
+  "gitlinks": [
+    {
+      "path": "nvblox_ros/nvblox_core",
+      "commit": "24eee4948768682fa1ffb969b881efee4fca29c2"
+    }
+  ]
+}
